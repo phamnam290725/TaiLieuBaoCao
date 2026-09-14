@@ -1,0 +1,38 @@
+name: Telegram Commit Notification
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        env:
+          BOT_TOKEN: "8620145889:AAFls7FVkfguTPavQ7BLR2PGFBnpg1yiMCE"
+          CHAT_ID: "-1003887193406"
+          TOPIC_ID: "4703"
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          PUSHER: ${{ github.event.pusher.name }}
+          COMMIT_ID: ${{ github.event.head_commit.id }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMPARE_URL: ${{ github.event.compare }}
+        run: |
+          SHORT_ID="${COMMIT_ID:0:7}"
+          MESSAGE="🚀 Push tới ${REPO}
+          🌿 Nhánh: ${BRANCH}
+          👤 Pusher: ${PUSHER}
+          🔖 Commit: ${SHORT_ID}
+
+          📝 ${COMMIT_MSG}
+
+          🔗 ${COMPARE_URL}"
+
+          curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "message_thread_id=${TOPIC_ID}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=${MESSAGE}"
