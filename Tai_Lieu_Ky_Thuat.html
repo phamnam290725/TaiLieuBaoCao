@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NextGZ Addons · Tài liệu kỹ thuật</title>
+<meta name="description" content="Tài liệu kỹ thuật NextGZ-Godot-Addons: kiến trúc custom_plugin (Java) và addons (GDScript), hướng dẫn 5 addon AndroidUtil, Google Sign-In, Google Billing, Firebase, AdMob, bảng lỗi thường gặp và quy trình SOP 4 bước tạo addon mới.">
+<script>
+  // Áp theme trước khi vẽ trang để không bị chớp màu
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('nz-doc-theme'); } catch (e) {}
+    if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+  })();
+</script>
+<style>
+  /* ================= TOKENS ================= */
+  :root {
+    --bg: #f5f7fb;
+    --bg-elev: #ffffff;
+    --bg-elev-2: #eef2f8;
+    --bg-code: #f6f8fb;
+    --border: #e1e6ef;
+    --border-strong: #cbd3e1;
+    --text: #141922;
+    --text-muted: #5a6475;
+    --accent: #d9730d;
+    --accent-soft: rgba(217,115,13,.10);
+    --link: #2563eb;
+    --java: #b45309;
+    --java-soft: rgba(180,83,9,.09);
+    --gd: #2563eb;
+    --gd-soft: rgba(37,99,235,.08);
+    --sdk: #0f766e;
+    --sdk-soft: rgba(15,118,110,.09);
+    --ok: #15803d;
+    --ok-soft: rgba(21,128,61,.09);
+    --warn: #a16207;
+    --warn-bg: #fff8e1;
+    --warn-border: #f5c542;
+    --danger: #b91c1c;
+    --danger-bg: #fdecec;
+    --danger-border: #ef6b6b;
+    --info: #0e7490;
+    --info-bg: #e6f6fa;
+    --info-border: #5cc6dc;
+    --kw: #8b3fc4;
+    --str: #2f7a12;
+    --num: #c2410c;
+    --fn: #1d4ed8;
+    --cmt: #8590a3;
+    --type: #0f766e;
+    --tag: #b91c1c;
+    --shadow: 0 8px 24px rgba(20,30,60,.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --sidebar-w: 290px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0e14;
+      --bg-elev: #12161f;
+      --bg-elev-2: #182030;
+      --bg-code: #0d1117;
+      --border: #1f2735;
+      --border-strong: #2c3647;
+      --text: #e6e9ef;
+      --text-muted: #919aab;
+      --accent: #ffa028;
+      --accent-soft: rgba(255,160,40,.12);
+      --link: #7aa7ff;
+      --java: #f59e0b;
+      --java-soft: rgba(245,158,11,.10);
+      --gd: #6ea2ff;
+      --gd-soft: rgba(110,162,255,.10);
+      --sdk: #2dd4bf;
+      --sdk-soft: rgba(45,212,191,.10);
+      --ok: #4ade80;
+      --ok-soft: rgba(74,222,128,.10);
+      --warn: #fcd34d;
+      --warn-bg: rgba(252,211,77,.09);
+      --warn-border: #b8901f;
+      --danger: #ff8080;
+      --danger-bg: rgba(255,92,92,.10);
+      --danger-border: #c24444;
+      --info: #67e8f9;
+      --info-bg: rgba(34,211,238,.08);
+      --info-border: #1f8ea3;
+      --kw: #c792ea;
+      --str: #c3e88d;
+      --num: #f78c6c;
+      --fn: #82aaff;
+      --cmt: #6b7484;
+      --type: #5eead4;
+      --tag: #ff8b8b;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0e14;
+    --bg-elev: #12161f;
+    --bg-elev-2: #182030;
+    --bg-code: #0d1117;
+    --border: #1f2735;
+    --border-strong: #2c3647;
+    --text: #e6e9ef;
+    --text-muted: #919aab;
+    --accent: #ffa028;
+    --accent-soft: rgba(255,160,40,.12);
+    --link: #7aa7ff;
+    --java: #f59e0b;
+    --java-soft: rgba(245,158,11,.10);
+    --gd: #6ea2ff;
+    --gd-soft: rgba(110,162,255,.10);
+    --sdk: #2dd4bf;
+    --sdk-soft: rgba(45,212,191,.10);
+    --ok: #4ade80;
+    --ok-soft: rgba(74,222,128,.10);
+    --warn: #fcd34d;
+    --warn-bg: rgba(252,211,77,.09);
+    --warn-border: #b8901f;
+    --danger: #ff8080;
+    --danger-bg: rgba(255,92,92,.10);
+    --danger-border: #c24444;
+    --info: #67e8f9;
+    --info-bg: rgba(34,211,238,.08);
+    --info-border: #1f8ea3;
+    --kw: #c792ea;
+    --str: #c3e88d;
+    --num: #f78c6c;
+    --fn: #82aaff;
+    --cmt: #6b7484;
+    --type: #5eead4;
+    --tag: #ff8b8b;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  /* ================= BASE ================= */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--font); font-size: 15.5px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre, kbd { font-family: var(--mono); }
+  :not(pre) > code {
+    font-size: .86em; background: var(--bg-elev-2); border: 1px solid var(--border);
+    padding: .1em .38em; border-radius: 5px; white-space: nowrap;
+  }
+  h1, h2, h3, h4 { line-height: 1.25; margin: 0; }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  strong { font-weight: 650; }
+
+  /* ================= TOPBAR ================= */
+  .topbar {
+    position: sticky; top: 0; z-index: 40; height: 60px;
+    display: flex; align-items: center; gap: 12px; padding: 0 16px;
+    background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 750; letter-spacing: -.01em; }
+  .brand-logo {
+    width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center;
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 800;
+  }
+  .brand small { color: var(--text-muted); font-weight: 500; margin-left: 4px; }
+  .topbar-spacer { flex: 1; }
+  .icon-btn {
+    height: 36px; min-width: 36px; padding: 0 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg-elev); color: var(--text);
+    cursor: pointer; font: inherit; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .icon-btn:hover { border-color: var(--border-strong); }
+  .menu-btn { display: none; }
+
+  /* ================= LAYOUT ================= */
+  .layout { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+  .sidebar {
+    position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
+    border-right: 1px solid var(--border); background: var(--bg-elev);
+    padding: 18px 14px 40px;
+  }
+  .side-search {
+    width: 100%; height: 36px; padding: 0 12px; border-radius: 8px; margin-bottom: 14px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; font-size: 14px;
+  }
+  .side-search:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .nav-group { margin-bottom: 14px; }
+  .nav-title {
+    font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text-muted); padding: 6px 10px;
+  }
+  .nav-link {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 7px;
+    color: var(--text); font-size: 14px; line-height: 1.35; border-left: 2px solid transparent;
+  }
+  .nav-link:hover { background: var(--bg-elev-2); text-decoration: none; }
+  .nav-link.sub { padding-left: 24px; font-size: 13.5px; color: var(--text-muted); }
+  .nav-link.active { background: var(--accent-soft); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+  .nav-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+  .content { min-width: 0; padding: 32px 40px 80px; }
+  .content-inner { max-width: 980px; margin: 0 auto; }
+
+  /* ================= HERO ================= */
+  .hero {
+    border: 1px solid var(--border); border-radius: 16px; padding: 30px 30px 26px;
+    background:
+      radial-gradient(800px 240px at 0% 0%, var(--accent-soft), transparent 60%),
+      radial-gradient(600px 220px at 100% 100%, var(--gd-soft), transparent 60%),
+      var(--bg-elev);
+    margin-bottom: 36px; box-shadow: var(--shadow);
+  }
+  .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .hero h1 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -.02em; margin: 8px 0 10px; }
+  .hero p { color: var(--text-muted); max-width: 720px; font-size: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .chip {
+    font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--bg-elev-2); color: var(--text-muted);
+  }
+
+  /* ================= SECTIONS ================= */
+  .part { margin: 56px 0 20px; padding-top: 8px; }
+  .part-label { font-size: 12.5px; font-weight: 750; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; }
+  .part h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -.015em; margin: 6px 0 8px; }
+  .part > p.lead { color: var(--text-muted); font-size: 16px; max-width: 760px; }
+  section.sec { margin: 34px 0; }
+  section.sec > h3 {
+    font-size: 20px; letter-spacing: -.01em; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  h4 { font-size: 15.5px; margin: 22px 0 8px; }
+  .muted { color: var(--text-muted); }
+
+  /* ================= CARDS ================= */
+  .card {
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px; box-shadow: var(--shadow); margin: 16px 0;
+  }
+  .card > :last-child { margin-bottom: 0; }
+  .grid { display: grid; gap: 14px; }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mini-card {
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .mini-card h4 { margin: 0 0 6px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .mini-card p { color: var(--text-muted); font-size: 14px; margin: 0; }
+  a.mini-card { color: inherit; display: block; transition: border-color .15s, transform .15s; }
+  a.mini-card:hover { text-decoration: none; border-color: var(--accent); transform: translateY(-1px); }
+
+  .addon-head {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+    padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg-elev-2); font-size: 13.5px; margin-bottom: 14px;
+  }
+  .addon-head span { color: var(--text-muted); }
+  .addon-head code { white-space: nowrap; }
+
+  .badge {
+    display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px; letter-spacing: .02em; white-space: nowrap;
+  }
+  .b-java { background: var(--java-soft); color: var(--java); }
+  .b-gd { background: var(--gd-soft); color: var(--gd); }
+  .b-sdk { background: var(--sdk-soft); color: var(--sdk); }
+  .b-ok { background: var(--ok-soft); color: var(--ok); }
+  .b-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+  .b-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+  /* ================= CALLOUTS ================= */
+  .callout {
+    border: 1px solid; border-left-width: 5px; border-radius: var(--radius-sm);
+    padding: 14px 16px 14px 16px; margin: 16px 0; font-size: 14.5px;
+  }
+  .callout-title { font-weight: 750; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .callout > :last-child { margin-bottom: 0; }
+  .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+  .callout.warn .callout-title { color: var(--warn); }
+  .callout.danger { background: var(--danger-bg); border-color: var(--danger-border); }
+  .callout.danger .callout-title { color: var(--danger); }
+  .callout.info { background: var(--info-bg); border-color: var(--info-border); }
+  .callout.info .callout-title { color: var(--info); }
+  .callout.ok { background: var(--ok-soft); border-color: var(--ok); }
+  .callout.ok .callout-title { color: var(--ok); }
+  .ico {
+    width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center;
+    font-size: 12px; font-weight: 800; color: #fff; flex: none;
+  }
+  .warn .ico { background: var(--warn-border); }
+  .danger .ico { background: var(--danger-border); }
+  .info .ico { background: var(--info-border); }
+  .ok .ico { background: var(--ok); }
+
+  /* ================= TABLES ================= */
+  .table-wrap {
+    overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg-elev); margin: 14px 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elev-2); font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 700; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+  td.wrap code { white-space: normal; }
+  .err-table td:first-child { min-width: 210px; }
+  .err-table td:nth-child(2) { min-width: 230px; }
+  .err-table td:nth-child(3) { min-width: 280px; }
+  .sev-row-danger td:first-child { box-shadow: inset 4px 0 0 var(--danger-border); }
+  .sev-row-warn td:first-child { box-shadow: inset 4px 0 0 var(--warn-border); }
+
+  /* ================= CODE ================= */
+  .code {
+    position: relative; margin: 14px 0; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-code); overflow: hidden;
+  }
+  .code-head {
+    display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 14px;
+    border-bottom: 1px solid var(--border); background: var(--bg-elev-2);
+    font-size: 12.5px; color: var(--text-muted);
+  }
+  .code-head .file { font-family: var(--mono); color: var(--text); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .code-head .lang { margin-left: auto; text-transform: uppercase; font-weight: 700; letter-spacing: .06em; font-size: 11px; }
+  .copy-btn {
+    border: 1px solid var(--border); background: var(--bg-elev); color: var(--text-muted);
+    border-radius: 6px; font: inherit; font-size: 12px; padding: 2px 9px; cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  pre { margin: 0; padding: 14px 16px; overflow-x: auto; font-size: 13.2px; line-height: 1.6; tab-size: 4; }
+  .tk-kw { color: var(--kw); }
+  .tk-str { color: var(--str); }
+  .tk-num { color: var(--num); }
+  .tk-fn { color: var(--fn); }
+  .tk-cmt { color: var(--cmt); font-style: italic; }
+  .tk-type { color: var(--type); }
+  .tk-ann { color: var(--num); }
+  .tk-tag { color: var(--tag); }
+  .tk-attr { color: var(--fn); }
+
+  /* ================= DIAGRAM ================= */
+  .arch { display: grid; gap: 0; margin: 18px 0; }
+  .layer {
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px;
+    background: var(--bg-elev); display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 14px; align-items: center;
+  }
+  .layer-name { font-weight: 750; font-size: 14.5px; }
+  .layer-name small { display: block; font-weight: 500; color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }
+  .layer-boxes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lbox {
+    font-family: var(--mono); font-size: 12.5px; padding: 6px 10px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--bg-elev-2);
+  }
+  .layer.game { border-color: var(--border-strong); }
+  .layer.gd { background: var(--gd-soft); border-color: color-mix(in srgb, var(--gd) 35%, var(--border)); }
+  .layer.gd .layer-name { color: var(--gd); }
+  .layer.java { background: var(--java-soft); border-color: color-mix(in srgb, var(--java) 35%, var(--border)); }
+  .layer.java .layer-name { color: var(--java); }
+  .layer.sdk { background: var(--sdk-soft); border-color: color-mix(in srgb, var(--sdk) 35%, var(--border)); }
+  .layer.sdk .layer-name { color: var(--sdk); }
+  .connector {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 6px 0;
+    font-size: 12.5px; color: var(--text-muted);
+  }
+  .connector div { display: flex; align-items: center; gap: 8px; justify-content: center; text-align: center; }
+  .arrow { font-family: var(--mono); font-weight: 700; font-size: 15px; }
+  .arrow.down { color: var(--accent); }
+  .arrow.up { color: var(--ok); }
+  .bridge-label {
+    font-family: var(--mono); font-size: 11.5px; padding: 1px 7px; border-radius: 5px;
+    background: var(--bg-elev); border: 1px dashed var(--border-strong); color: var(--text);
+  }
+
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 16px 0; }
+  .flow-step {
+    flex: 1 1 150px; border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    background: var(--bg-elev); font-size: 13px;
+  }
+  .flow-step b { display: block; font-size: 13.5px; margin-bottom: 4px; }
+  .flow-step .where { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .flow-step.j .where { color: var(--java); }
+  .flow-step.g .where { color: var(--gd); }
+  .flow-arrow { display: grid; place-items: center; color: var(--text-muted); font-weight: 700; }
+
+  .tree {
+    font-family: var(--mono); font-size: 13px; line-height: 1.7; background: var(--bg-code);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; overflow-x: auto; white-space: pre; margin: 14px 0;
+  }
+  .tree .d { color: var(--fn); font-weight: 600; }
+  .tree .c { color: var(--cmt); }
+
+  /* ================= TABS ================= */
+  .tabs { margin: 14px 0; }
+  .tab-list { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn {
+    border: none; background: none; color: var(--text-muted); font: inherit; font-size: 14px; font-weight: 600;
+    padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tab-btn[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-panel[hidden] { display: none; }
+
+  /* ================= STEPS ================= */
+  .steps { counter-reset: step; display: grid; gap: 18px; margin: 18px 0; }
+  .step {
+    position: relative; background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 22px 18px 76px; box-shadow: var(--shadow);
+  }
+  .step-num {
+    position: absolute; left: 20px; top: 20px; width: 40px; height: 40px; border-radius: 12px;
+    display: grid; place-items: center; font-weight: 800; font-size: 17px; color: #fff; background: var(--accent);
+  }
+  .step h3 { font-size: 19px; margin-bottom: 4px; }
+  .step .step-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 12px; }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding-left: 28px; position: relative; }
+  .checklist li::before {
+    content: "✓"; position: absolute; left: 0; top: 1px; width: 18px; height: 18px; border-radius: 5px;
+    background: var(--ok-soft); color: var(--ok); font-size: 12px; font-weight: 800; display: grid; place-items: center;
+  }
+
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; }
+  .kv dt { color: var(--text-muted); }
+  .kv dd { margin: 0; }
+
+  footer { margin-top: 70px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+
+  .to-top {
+    position: fixed; right: 18px; bottom: 18px; z-index: 30; opacity: 0; pointer-events: none; transition: opacity .2s;
+    box-shadow: var(--shadow);
+  }
+  .to-top.show { opacity: 1; pointer-events: auto; }
+  .backdrop { display: none; }
+  .hidden-by-search { display: none !important; }
+
+  /* ================= RESPONSIVE ================= */
+  @media (max-width: 1020px) {
+    .content { padding: 26px 24px 70px; }
+    .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 860px) {
+    .menu-btn { display: inline-flex; }
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .sidebar {
+      position: fixed; left: 0; top: 60px; z-index: 50; width: min(86vw, 320px);
+      transform: translateX(-102%); transition: transform .22s ease; box-shadow: var(--shadow);
+    }
+    body.nav-open .sidebar { transform: translateX(0); }
+    body.nav-open .backdrop {
+      display: block; position: fixed; inset: 60px 0 0 0; z-index: 45; background: rgba(0,0,0,.35);
+    }
+    .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+    .layer { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .brand small { display: none; }
+  }
+  @media (max-width: 560px) {
+    .content { padding: 20px 16px 60px; }
+    .hero { padding: 22px 18px; }
+    .step { padding: 70px 16px 16px 16px; }
+    .step-num { left: 16px; top: 16px; }
+    .connector { grid-template-columns: minmax(0, 1fr); }
+    .flow-arrow { width: 100%; transform: rotate(90deg); height: 14px; }
+    .card { padding: 16px; }
+    pre { font-size: 12.5px; }
+  }
+  @media print {
+    .sidebar, .topbar, .to-top, .copy-btn { display: none !important; }
+    .layout { grid-template-columns: 1fr; }
+    .tab-panel[hidden] { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Mở mục lục" aria-expanded="false">☰</button>
+  <div class="brand">
+    <div class="brand-logo">GZ</div>
+    <div>NextGZ Addons <small>Tài liệu kỹ thuật</small></div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <button class="icon-btn" id="themeBtn" aria-label="Đổi giao diện sáng/tối">◐ <span id="themeLabel">Giao diện</span></button>
+</header>
+
+<div class="layout">
+  <!-- ================= SIDEBAR ================= -->
+  <nav class="sidebar" id="sidebar" aria-label="Mục lục">
+    <input class="side-search" id="sideSearch" type="search" placeholder="Lọc mục lục…" aria-label="Lọc mục lục">
+
+    <div class="nav-group">
+      <div class="nav-title">Phần 1 · Tổng quan</div>
+      <a class="nav-link" href="#tong-quan">Giới thiệu dự án</a>
+      <a class="nav-link sub" href="#kien-truc">Sơ đồ phân tầng</a>
+      <a class="nav-link sub" href="#luong-du-lieu">Luồng dữ liệu &amp; queue</a>
+      <a class="nav-link sub" href="#cau-truc-thu-muc">Cấu trúc thư mục</a>
+      <a class="nav-link sub" href="#bang-addon">Bảng 5 addon</a>
+      <a class="nav-link sub" href="#nguyen-tac">Rào chắn kỹ thuật</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-title">Phần 2 · 5 Addons</div>
+      <a class="nav-link" href="#addon-androidutil"><span class="nav-dot" style="background:var(--accent)"></span>AndroidUtil</a>
+      <a class="nav-link" href="#addon-signin"><span class="nav-dot" style="background:var(--gd)"></span>Google Sign-In</a>
+      <a class="nav-link" href="#addon-billing"><span class="nav-dot" style="background:var(--ok)"></span>Google Billing</a>
+      <a class="nav-link" href="#addon-firebase"><span class="nav-dot" style="background:var(--java)"></span>Firebase</a>
+      <a class="nav-link" href="#addon-admob"><span class="nav-dot" style="background:var(--sdk)"></span>AdMob</a>
+      <a class="nav-link sub" href="#safe-mock">Tổng hợp Safe-Mock</a>
+      <a class="nav-link sub" href="#loi-thuong-gap">Lỗi thường gặp &amp; cách fix</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-title">Phần 3 · SOP</div>
+      <a class="nav-link" href="#sop">Quy trình 4 bước</a>
+      <a class="nav-link sub" href="#sop-1">Bước 1 · Java Native</a>
+      <a class="nav-link sub" href="#sop-2">Bước 2 · Build AAR</a>
+      <a class="nav-link sub" href="#sop-3">Bước 3 · GDScript Wrapper</a>
+      <a class="nav-link sub" href="#sop-4">Bước 4 · Export &amp; bàn giao</a>
+      <a class="nav-link sub" href="#sop-checklist">Checklist trước khi merge</a>
+    </div>
+  </nav>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- ================= CONTENT ================= -->
+  <main class="content">
+    <div class="content-inner">
+
+      <div class="hero" id="top">
+        <div class="eyebrow">NextGZ-Godot-Addons · Godot 4.6 · Android</div>
+        <h1>Tài liệu kỹ thuật bộ Addon Android dùng chung</h1>
+        <p>Tài liệu cho dev tích hợp và dev viết thêm addon. Nội dung gồm kiến trúc hai tầng <code>custom_plugin</code> (Java) và <code>addons</code> (GDScript), cách dùng từng addon kèm code mẫu, cơ chế Safe-Mock khi chạy trên PC, các lỗi hay gặp và quy trình 4 bước để tạo addon mới.</p>
+        <div class="chips">
+          <span class="chip">Godot Android Plugin v2</span>
+          <span class="chip">Java 17 · AGP 8.7.3 · Gradle 8.9</span>
+          <span class="chip">compileSdk 34 · minSdk 21</span>
+          <span class="chip">5 addon</span>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           PHẦN 1
+      ========================================================== -->
+      <div class="part" id="tong-quan">
+        <div class="part-label">Phần 1</div>
+        <h2>Tổng quan &amp; cấu trúc dự án</h2>
+        <p class="lead">Repo này là thư viện hạ tầng dùng chung cho nhiều game Godot trên Android. Mỗi tính năng native (thông báo, đăng nhập, thanh toán, analytics, quảng cáo) được viết một lần bằng Java, đóng gói thành <code>.aar</code>, rồi bọc trong một Autoload GDScript. Phía game chỉ cần gọi <code>TênAddon.hàm()</code>.</p>
+      </div>
+
+      <section class="sec" id="kien-truc">
+        <h3>Sơ đồ phân tầng</h3>
+        <p>Code chia làm bốn tầng. Lệnh đi từ trên xuống, kết quả bất đồng bộ đi từ dưới lên. Tầng game không bao giờ gọi thẳng vào Java: mọi lời gọi đều qua wrapper GDScript, vì wrapper là nơi có Safe-Mock.</p>
+
+        <div class="arch" role="img" aria-label="Sơ đồ 4 tầng: Game, addons GDScript, custom_plugin Java, SDK bên thứ ba">
+          <div class="layer game">
+            <div class="layer-name">Code Game<small>repo game, không nằm ở đây</small></div>
+            <div class="layer-boxes">
+              <span class="lbox">Shop.gd</span><span class="lbox">Login.gd</span><span class="lbox">Splash.gd</span><span class="lbox">…</span>
+            </div>
+          </div>
+          <div class="connector">
+            <div><span class="arrow down">▼</span> gọi hàm <span class="bridge-label">GoogleBilling.purchase(id)</span></div>
+            <div><span class="arrow up">▲</span> signal GDScript <span class="bridge-label">purchase_updated</span></div>
+          </div>
+          <div class="layer gd">
+            <div class="layer-name">addons/&lt;tên&gt;/<small>GDScript · Autoload + Safe-Mock</small></div>
+            <div class="layer-boxes">
+              <span class="lbox">AndroidUtil.gd</span><span class="lbox">GoogleSignIn.gd</span><span class="lbox">GoogleBilling.gd</span><span class="lbox">Firebase.gd</span><span class="lbox">AdMob.gd</span>
+              <span class="lbox">export_plugin.gd</span><span class="lbox">bin/*.aar</span>
+            </div>
+          </div>
+          <div class="connector">
+            <div><span class="arrow down">▼</span> <span class="bridge-label">Engine.get_singleton("GodotXxx")</span></div>
+            <div><span class="arrow up">▲</span> signal &quot;chuông&quot; + <span class="bridge-label">pop_pending_*()</span></div>
+          </div>
+          <div class="layer java">
+            <div class="layer-name">custom_plugin/&lt;tên&gt;/<small>Java · Facade + Module con</small></div>
+            <div class="layer-boxes">
+              <span class="lbox">GodotXxxPlugin (Facade)</span><span class="lbox">@UsedByGodot</span><span class="lbox">ConcurrentLinkedQueue</span><span class="lbox">XxxModule</span><span class="lbox">Mapper → Dictionary</span>
+            </div>
+          </div>
+          <div class="connector">
+            <div><span class="arrow down">▼</span> gọi API SDK</div>
+            <div><span class="arrow up">▲</span> callback (UI thread)</div>
+          </div>
+          <div class="layer sdk">
+            <div class="layer-name">SDK bên thứ 3<small>kéo qua Maven khi export</small></div>
+            <div class="layer-boxes">
+              <span class="lbox">androidx.credentials</span><span class="lbox">billing 7.x</span><span class="lbox">firebase-bom</span><span class="lbox">play-services-ads</span><span class="lbox">androidx.core</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="mini-card">
+            <h4><span class="badge b-java">Java</span> custom_plugin/</h4>
+            <p>Mã nguồn native, mỗi plugin là một project Gradle riêng. Một lớp <b>Facade</b> kế thừa <code>GodotPlugin</code> chỉ lo nhận lệnh và chuyển xuống <b>Module con</b>. Module con mới là nơi gọi SDK. Kết quả build: <code>build/outputs/aar/&lt;Tên&gt;-release.aar</code>.</p>
+          </div>
+          <div class="mini-card">
+            <h4><span class="badge b-gd">GDScript</span> addons/</h4>
+            <p>Phần game thực sự dùng. Gồm file <code>.aar</code> đã build, <code>plugin.cfg</code>, <code>export_plugin.gd</code> (khai báo AAR, Maven và manifest khi export) và một wrapper Autoload có Safe-Mock.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="luong-du-lieu">
+        <h3>Luồng dữ liệu &amp; cơ chế queue chống Cold Start</h3>
+        <p>Callback của Android (Credential Manager, Billing, mở app từ thông báo) chạy trên <b>UI thread</b> và có thể tới <b>trước khi engine Godot nạp xong</b>. Nếu gọi <code>emitSignal()</code> lúc đó, app văng vì signal của plugin chưa được đăng ký. Các addon mới (AndroidUtil, Google Sign-In, Google Billing) xử lý theo cùng một mẫu:</p>
+
+        <div class="flow">
+          <div class="flow-step j"><span class="where">Java · UI thread</span><b>1. Callback tới</b>Chuyển kết quả thành <code>Dictionary</code> rồi <code>queue.offer()</code>.</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step j"><span class="where">Java</span><b>2. Rung chuông</b>Chỉ emit khi <code>mainLoopStarted</code>, qua <code>runOnRenderThread</code>, signal không kèm dữ liệu.</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step g"><span class="where">GDScript</span><b>3. Rút queue</b><code>while has_pending_*(): pop_pending_*()</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step g"><span class="where">GDScript</span><b>4. Phát signal</b>Tách thành các signal có nghĩa cho game.</div>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title"><span class="ico">i</span>Vì sao không mất dữ liệu khi cold start?</div>
+          <p>Queue là nơi duy nhất giữ dữ liệu, còn signal chỉ là chuông báo. Nếu chuông không kêu được (engine chưa sẵn sàng), dữ liệu vẫn nằm trong queue. Trong <code>_ready()</code>, wrapper đợi một frame (<code>process_frame</code> với <code>CONNECT_ONE_SHOT</code>) để các node khác kịp connect signal, rồi tự rút queue một lần. Ngoài ra, <code>onGodotMainLoopStarted()</code> ở phía Java cũng rung chuông lại nếu queue còn dữ liệu.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="cau-truc-thu-muc">
+        <h3>Cấu trúc thư mục</h3>
+<div class="tree"><span class="d">NextGZ-Godot-Addons/</span>
+├── <span class="d">addons/</span>                          <span class="c"># Tầng GDScript, copy sang repo game</span>
+│   ├── <span class="d">android_util/</span>      AndroidUtil.gd · export_plugin.gd · plugin.cfg · bin/GodotAndroidUtil-release.aar
+│   ├── <span class="d">google_sign_in/</span>    GoogleSignIn.gd · export_plugin.gd · plugin.cfg · bin/GodotGoogleSignIn-release.aar
+│   ├── <span class="d">google_billing/</span>    GoogleBilling.gd · export_plugin.gd · plugin.cfg · bin/GodotGoogleBilling-release.aar
+│   ├── <span class="d">godot_firebase/</span>    Firebase.gd · export_plugin.gd · plugin.cfg · bin/GodotFirebase-release.aar
+│   └── <span class="d">admob/</span>             AdMob.gd · export_plugin.gd · plugin.cfg · admob_plugin.gd <span class="c">(cũ, không dùng)</span> · bin/Admob.release.aar
+├── <span class="d">custom_plugin/</span>                   <span class="c"># Tầng Java, mỗi thư mục là một project Gradle độc lập</span>
+│   ├── <span class="d">android_util/</span>      com.godot.androidutil   (notification/, device/)
+│   ├── <span class="d">google_sign_in/</span>    com.godot.googlesignin  (auth/GoogleAuthModule)
+│   ├── <span class="d">google_billing/</span>    com.godot.googlebilling (billing/BillingModule, BillingMapper)
+│   └── <span class="d">firebase/</span>          com.godot.firebase      (analytics/, crashlytics/, messaging/, database/, remoteconfig/)
+│       ├── build.gradle.kts · settings.gradle.kts · gradle.properties · gradlew(.bat)
+│       └── src/main/AndroidManifest.xml · src/main/java/…
+├── <span class="d">docs/</span>                            <span class="c"># Tài liệu HTML</span>
+├── CLAUDE.md                        <span class="c"># Quy chuẩn dự án & skill tạo plugin</span>
+├── export_presets.cfg               <span class="c"># Android · gradle_build/use_gradle_build=true</span>
+└── project.godot                    <span class="c"># Autoload + editor_plugins đã bật</span></div>
+        <div class="callout warn">
+          <div class="callout-title"><span class="ico">!</span>AdMob chưa có mã nguồn Java trong repo</div>
+          <p>Thư mục <code>custom_plugin/</code> không có project của AdMob, repo chỉ có sẵn file <code>addons/admob/bin/Admob.release.aar</code>. Muốn sửa phía native của AdMob thì phải tìm lại source gốc, hoặc viết lại theo <a href="#sop">SOP 4 bước</a>.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="bang-addon">
+        <h3>Bảng tổng hợp 5 addon</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Addon</th><th>Autoload (game gọi)</th><th>Singleton Java</th><th>Dependency Maven</th><th>Cơ chế trả kết quả</th></tr></thead>
+            <tbody>
+              <tr><td><b>AndroidUtil</b></td><td><code>AndroidUtil</code></td><td><code>GodotAndroidUtil</code></td><td><code>androidx.core:core:1.12.0</code></td><td><span class="badge b-ok">Queue</span></td></tr>
+              <tr><td><b>Google Sign-In</b></td><td><code>GoogleSignIn</code></td><td><code>GodotGoogleSignIn</code></td><td class="wrap"><code>credentials:1.3.0 · credentials-play-services-auth:1.3.0 · googleid:1.1.1</code></td><td><span class="badge b-ok">Queue</span></td></tr>
+              <tr><td><b>Google Billing</b></td><td><code>GoogleBilling</code></td><td><code>GodotGoogleBilling</code></td><td><code>billing:7.1.1</code></td><td><span class="badge b-ok">Queue</span></td></tr>
+              <tr><td><b>Firebase</b></td><td><code>Firebase</code></td><td><code>GodotFirebase</code></td><td class="wrap"><code>firebase-analytics · crashlytics · messaging · database · config</code></td><td><span class="badge b-warn">emit trực tiếp</span></td></tr>
+              <tr><td><b>AdMob</b></td><td><code>AdMob</code></td><td><code>Admob</code></td><td><code>play-services-ads:23.4.0</code></td><td><span class="badge b-warn">emit trực tiếp</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">Firebase và AdMob ra đời trước quy chuẩn queue. Chúng vẫn chạy được vì các signal chỉ phát ra sau khi game đã gọi hàm, tức engine đã sẵn sàng. Riêng trường hợp FCM đổi token qua Service có thể rơi vào lúc engine chưa sẵn sàng (xem <a href="#loi-thuong-gap">bảng lỗi</a>).</p>
+      </section>
+
+      <section class="sec" id="nguyen-tac">
+        <h3>Rào chắn kỹ thuật (trích CLAUDE.md)</h3>
+        <div class="grid grid-2">
+          <div class="mini-card"><h4>🚫 Không có logic game trong addon</h4><p>Không ghi cứng tên game, text hiển thị, màn chơi hay lịch điểm danh. Các dữ liệu đó do game truyền vào (ví dụ <code>title</code>, <code>body</code>, <code>product_id</code>).</p></div>
+          <div class="mini-card"><h4>🧊 Cold Start &amp; Threading</h4><p>Không <code>emitSignal()</code> trực tiếp từ callback OS lúc app vừa mở. Lưu vào queue Java, GDScript rút ra sau.</p></div>
+          <div class="mini-card"><h4>🛡️ Chính sách Google Play</h4><p>Không dùng quyền bị hạn chế như <code>SCHEDULE_EXACT_ALARM</code>. AndroidUtil dùng <code>setAndAllowWhileIdle</code> (báo thức không chính xác tuyệt đối).</p></div>
+          <div class="mini-card"><h4>🧹 Clean Code</h4><p>Mỗi hàm 5–15 dòng, comment một dấu <code>#</code> bằng tiếng Việt giải thích lý do, không dùng magic number, không dựng UI bằng code lúc chạy.</p></div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           PHẦN 2
+      ========================================================== -->
+      <div class="part" id="phan-2">
+        <div class="part-label">Phần 2</div>
+        <h2>Hướng dẫn chi tiết 5 Addons</h2>
+        <p class="lead">Mỗi addon gồm: mục đích, danh sách API, code mẫu gọi từ game, hành vi Safe-Mock trên PC và các lưu ý riêng. Code mẫu chỉ minh hoạ cách gọi. Tên sản phẩm, text và phần thưởng là của game, addon không biết tới.</p>
+      </div>
+
+      <!-- ---------------- AndroidUtil ---------------- -->
+      <section class="sec" id="addon-androidutil">
+        <h3>1 · AndroidUtil <span class="badge b-ok">Queue</span></h3>
+        <div class="addon-head">
+          <div><span>Autoload:</span> <code>AndroidUtil</code></div>
+          <div><span>Java:</span> <code>com.godot.androidutil.GodotAndroidUtilPlugin</code></div>
+          <div><span>Quyền:</span> <code>POST_NOTIFICATIONS</code> · <code>ACCESS_NETWORK_STATE</code> · <code>RECEIVE_BOOT_COMPLETED</code></div>
+        </div>
+        <p><b>Mục đích:</b> hẹn thông báo cục bộ chạy được cả khi offline hoặc app đã đóng (thông qua <code>AlarmManager</code> và <code>NotificationReceiver</code>, tự đặt lại lịch sau khi máy khởi động lại). Addon cũng đọc thông số thiết bị: RAM, CPU, pin, loại mạng, phiên bản app.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>API</th><th>Mô tả</th></tr></thead>
+            <tbody>
+              <tr><td><code>request_notification_permission()</code></td><td>Android 13+ hiện hộp thoại xin quyền. Kết quả trả về qua <code>notification_permission_result(granted)</code>.</td></tr>
+              <tr><td><code>are_notifications_enabled() → bool</code></td><td>Kiểm tra quyền thông báo hiện tại.</td></tr>
+              <tr><td><code>schedule_notification(id, title, body, delay_seconds, payload="") → bool</code></td><td>Hẹn một thông báo. <code>payload</code> là chuỗi tuỳ ý, được trả lại khi người chơi bấm vào thông báo.</td></tr>
+              <tr><td><code>schedule_batch(notifications: Array[Dictionary])</code></td><td>Hẹn nhiều thông báo cùng lúc. Mỗi phần tử có dạng <code>{id, title, body, delay_seconds, payload}</code>.</td></tr>
+              <tr><td><code>cancel_notification(id)</code> · <code>cancel_all_notifications()</code></td><td>Huỷ một thông báo hoặc huỷ tất cả.</td></tr>
+              <tr><td><code>is_notification_scheduled(id) → bool</code></td><td>Kiểm tra một thông báo còn trong lịch hẹn không.</td></tr>
+              <tr><td><code>signal notification_opened(id, payload)</code></td><td>Người chơi mở game bằng cách bấm vào thông báo. Hoạt động cả khi cold start.</td></tr>
+              <tr><td><code>get_device_info() → Dictionary</code></td><td>Trả về <code>total_ram_mb, available_ram_mb, is_low_memory, cpu_cores, cpu_abi, battery_level, is_charging, network_type, device_model, sdk_int, app_version_name…</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Code mẫu</h4>
+<div class="code" data-lang="gdscript" data-file="game/NotificationService.gd"><pre><code># Kết nối sớm để không bỏ lỡ thông báo đã mở app lúc cold start
+func _ready() -> void:
+	AndroidUtil.notification_opened.connect(_on_notification_opened)
+	AndroidUtil.notification_permission_result.connect(_on_permission_result)
+	if not AndroidUtil.are_notifications_enabled():
+		AndroidUtil.request_notification_permission()
+
+
+# Text và thời gian hẹn do game quyết định, addon chỉ chuyển xuống Android
+func _schedule_comeback_reminder(title: String, body: String) -> void:
+	const REMINDER_ID := 1001
+	const DELAY_SECONDS := 8 * 60 * 60
+	AndroidUtil.cancel_notification(REMINDER_ID)
+	AndroidUtil.schedule_notification(REMINDER_ID, title, body, DELAY_SECONDS, "open_daily")
+
+
+# Payload do chính game đặt nên game tự định tuyến màn hình
+func _on_notification_opened(id: int, payload: String) -> void:
+	print("Mở từ thông báo ", id, " payload=", payload)
+
+
+func _on_permission_result(granted: bool) -> void:
+	print("Quyền thông báo: ", granted)
+
+
+# Hạ chất lượng đồ hoạ trên máy yếu
+func _apply_quality_preset() -> void:
+	var info := AndroidUtil.get_device_info()
+	if info.get("is_low_memory", false) or int(info.get("total_ram_mb", 0)) &lt; 3072:
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED</code></pre></div>
+
+        <div class="callout ok">
+          <div class="callout-title"><span class="ico">✓</span>Safe-Mock trên PC/Editor</div>
+          <p><code>are_notifications_enabled()</code> trả về <code>true</code>. <code>request_notification_permission()</code> phát ngay <code>notification_permission_result(true)</code>. <code>schedule_notification()</code> trả về <code>true</code> nhưng không hẹn gì. <code>get_device_info()</code> trả dữ liệu giả lập (8192 MB RAM, <code>network_type="WIFI"</code>, số lõi CPU thật của PC). <code>notification_opened</code> không bao giờ phát.</p>
+        </div>
+      </section>
+
+      <!-- ---------------- Google Sign-In ---------------- -->
+      <section class="sec" id="addon-signin">
+        <h3>2 · Google Sign-In <span class="badge b-ok">Queue</span> <span class="badge b-ok">Credential Manager</span></h3>
+        <div class="addon-head">
+          <div><span>Autoload:</span> <code>GoogleSignIn</code></div>
+          <div><span>Java:</span> <code>com.godot.googlesignin.GodotGoogleSignInPlugin</code></div>
+          <div><span>SDK:</span> <code>androidx.credentials 1.3.0</code> · <code>googleid 1.1.1</code></div>
+        </div>
+        <p><b>Mục đích:</b> đăng nhập Google qua <b>Credential Manager</b> (<code>GetSignInWithGoogleOption</code>, kiểu đăng nhập khi người chơi bấm nút "Sign in with Google"), trả về thông tin người dùng và <code>id_token</code> để server game xác thực. Callback của Credential Manager được đưa vào queue rồi mới phát ra GDScript, không còn dùng <code>onMainActivityResult</code>.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>API</th><th>Mô tả</th></tr></thead>
+            <tbody>
+              <tr><td><code>sign_in(web_client_id: String)</code></td><td>Mở bottom sheet chọn tài khoản. <b>Web Client ID là bắt buộc</b>: phải là OAuth client loại <b>Web</b>, không phải Android client.</td></tr>
+              <tr><td><code>sign_out()</code></td><td>Gọi <code>clearCredentialState</code>. Lần sign-in sau sẽ hiện lại màn hình chọn tài khoản.</td></tr>
+              <tr><td><code>signal sign_in_success(user_data)</code></td><td><code>{id, email, display_name, photo_url, id_token}</code>. <code>id</code> là trường <code>sub</code> đọc từ ID token, chỉ dùng để hiển thị. Server vẫn phải verify <code>id_token</code>.</td></tr>
+              <tr><td><code>signal sign_in_failed(error)</code></td><td>Mã lỗi ngắn, xem bảng dưới.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mã lỗi <code>sign_in_failed</code></th><th>Ý nghĩa</th><th>Game nên làm gì</th></tr></thead>
+            <tbody>
+              <tr><td><code>CANCELLED</code></td><td>Người chơi tự đóng bottom sheet.</td><td>Im lặng, không hiện lỗi.</td></tr>
+              <tr><td><code>NO_CREDENTIAL</code></td><td>Không có tài khoản Google phù hợp, <b>hoặc SHA-1 / package chưa đăng ký đúng</b>.</td><td>Xem <a href="#loi-thuong-gap">bảng lỗi SHA-1</a>.</td></tr>
+              <tr><td><code>INTERRUPTED</code></td><td>Luồng đăng nhập bị gián đoạn.</td><td>Cho người chơi thử lại.</td></tr>
+              <tr><td><code>MISSING_WEB_CLIENT_ID</code></td><td>Truyền chuỗi rỗng vào <code>sign_in()</code>.</td><td>Sửa cấu hình phía game.</td></tr>
+              <tr><td><code>UNEXPECTED_CREDENTIAL…</code></td><td>Credential trả về không phải Google ID token.</td><td>Ghi log, báo lỗi chung.</td></tr>
+              <tr><td><code>NO_ACTIVITY</code></td><td>Plugin chưa có Activity.</td><td>Gọi lại sau khi game đã chạy.</td></tr>
+              <tr><td><code>&lt;type&gt;:&lt;message&gt;</code></td><td>Lỗi khác, giữ nguyên type gốc của Credential Manager.</td><td>Ghi log để điều tra.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Code mẫu</h4>
+<div class="code" data-lang="gdscript" data-file="game/LoginScreen.gd"><pre><code># Web Client ID lấy trong Firebase / Google Cloud, mỗi game một giá trị nên để ở phía game
+const WEB_CLIENT_ID := "1234567890-xxxxxxxx.apps.googleusercontent.com"
+
+
+func _ready() -> void:
+	GoogleSignIn.sign_in_success.connect(_on_sign_in_success)
+	GoogleSignIn.sign_in_failed.connect(_on_sign_in_failed)
+
+
+func _on_google_button_pressed() -> void:
+	GoogleSignIn.sign_in(WEB_CLIENT_ID)
+
+
+# Gửi id_token lên server để xác thực, không tin email gửi từ client
+func _on_sign_in_success(user_data: Dictionary) -> void:
+	var token: String = user_data.get("id_token", "")
+	print("Xin chào ", user_data.get("display_name", ""), " token rỗng=", token.is_empty())
+
+
+# CANCELLED là người chơi tự đóng, không cần hiện lỗi
+func _on_sign_in_failed(error: String) -> void:
+	if error == "CANCELLED":
+		return
+	push_warning("Google Sign-In lỗi: " + error)</code></pre></div>
+
+        <div class="callout ok">
+          <div class="callout-title"><span class="ico">✓</span>Safe-Mock trên PC/Editor</div>
+          <p><code>sign_in()</code> phát <code>sign_in_success</code> qua <code>call_deferred</code> với user giả <code>{id:"mock_user_id", email:"mock@example.com", display_name:"Mock User", photo_url:"", id_token:""}</code>. <code>sign_out()</code> không làm gì.</p>
+        </div>
+        <div class="callout warn">
+          <div class="callout-title"><span class="ico">!</span>Thay đổi phá vỡ tương thích khi lên v0.2.0 (từ GoogleSignIn API cũ)</div>
+          <ul>
+            <li><code>sign_in()</code> <b>bắt buộc</b> truyền <code>web_client_id</code>. Code cũ gọi <code>sign_in()</code> không tham số sẽ báo lỗi ngay khi Godot parse script.</li>
+            <li>Mã lỗi đổi từ dạng <code>"12501:SIGN_IN_CANCELLED"</code> sang <code>"CANCELLED"</code>. Các đoạn kiểm tra <code>begins_with("12501")</code> phải sửa lại.</li>
+            <li>Cấu trúc <code>user_data</code> giữ nguyên 5 trường như cũ.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ---------------- Google Billing ---------------- -->
+      <section class="sec" id="addon-billing">
+        <h3>3 · Google Billing <span class="badge b-ok">Queue</span></h3>
+        <div class="addon-head">
+          <div><span>Autoload:</span> <code>GoogleBilling</code></div>
+          <div><span>Java:</span> <code>com.godot.googlebilling.GodotGoogleBillingPlugin</code></div>
+          <div><span>SDK:</span> <code>billing:7.1.1</code> (chỉ INAPP)</div>
+        </div>
+        <p><b>Mục đích:</b> kết nối Google Play, lấy giá theo tiền tệ của người chơi, mua sản phẩm in-app, consume để mua lại được, và quét các đơn đã trả tiền nhưng chưa nhận khi mở app. Addon không chứa logic trao thưởng.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hàm</th><th>Signal thành công</th><th>Signal lỗi <code>(code, message)</code></th></tr></thead>
+            <tbody>
+              <tr><td><code>start_connection()</code></td><td><code>connected()</code></td><td><code>connection_failed</code> · <code>disconnected()</code></td></tr>
+              <tr><td><code>query_product_details(ids: PackedStringArray)</code></td><td><code>product_details_received(products)</code></td><td><code>product_details_failed</code></td></tr>
+              <tr><td><code>purchase(product_id)</code></td><td><code>purchase_updated(purchases)</code></td><td><code>purchase_failed</code> · <code>purchase_cancelled()</code></td></tr>
+              <tr><td><code>consume_purchase(purchase_token)</code></td><td><code>purchase_consumed(token)</code></td><td><code>consume_failed</code></td></tr>
+              <tr><td><code>acknowledge_purchase(purchase_token)</code></td><td><code>purchase_acknowledged(token)</code></td><td><code>acknowledge_failed</code></td></tr>
+              <tr><td><code>query_unconsumed_purchases()</code></td><td><code>unconsumed_purchases_received(purchases)</code></td><td><code>unconsumed_purchases_failed</code></td></tr>
+              <tr><td><code>is_ready() → bool</code></td><td colspan="2">Đã kết nối và gọi được các hàm mua hay chưa.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <dl class="kv card">
+          <dt>Mỗi product</dt><dd><code>product_id, title, description, price</code> (đã format, ví dụ "₫25.000"), <code>price_micros, currency_code</code></dd>
+          <dt>Mỗi purchase</dt><dd><code>product_id, purchase_token, order_id, purchase_state, purchase_time, quantity, is_acknowledged, original_json, signature</code></dd>
+          <dt>purchase_state</dt><dd><code>PURCHASE_STATE_PURCHASED = 1</code> (đã trả tiền) · <code>PURCHASE_STATE_PENDING = 2</code> (đang chờ thanh toán, <b>chưa được trao thưởng</b>)</dd>
+        </dl>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Loại sản phẩm</th><th>Ví dụ</th><th>Sau khi trao quyền lợi gọi</th><th>Mua lại được?</th></tr></thead>
+            <tbody>
+              <tr><td><b>Tiêu hao</b> (consumable)</td><td>Gói kim cương, vàng</td><td><code>consume_purchase(token)</code></td><td>Có</td></tr>
+              <tr><td><b>Không tiêu hao</b> (mua 1 lần)</td><td>Gỡ quảng cáo, mở khoá vĩnh viễn</td><td><code>acknowledge_purchase(token)</code></td><td>Không, người chơi sở hữu mãi</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">Consume đã bao gồm acknowledge, nên không gọi cả hai cho cùng một đơn. Danh sách sản phẩm nào là tiêu hao do game quyết định, addon không biết. <code>query_unconsumed_purchases()</code> trả về <b>mọi</b> đơn đang sở hữu, kể cả đơn không tiêu hao đã acknowledge, nên game phải kiểm tra <code>is_acknowledged</code> để không trao thưởng lại.</p>
+
+        <h4>Luồng chuẩn</h4>
+        <div class="flow">
+          <div class="flow-step g"><span class="where">Mở app</span><b>start_connection()</b>Chờ <code>connected</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step g"><span class="where">Ngay sau đó</span><b>query_unconsumed_purchases()</b>Trao bù các đơn bị kẹt</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step g"><span class="where">Vào Shop</span><b>query_product_details()</b>Hiện giá thật</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step g"><span class="where">Bấm mua</span><b>purchase(id)</b>Chờ <code>purchase_updated</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step g"><span class="where">State = 1</span><b>Trao thưởng → consume / acknowledge</b>Tuỳ loại sản phẩm</div>
+        </div>
+
+        <h4>Code mẫu</h4>
+<div class="code" data-lang="gdscript" data-file="game/ShopService.gd"><pre><code># Danh sách sản phẩm là dữ liệu của game, không đặt trong addon
+const CONSUMABLE_IDS: PackedStringArray = ["gem_pack_small", "gem_pack_large"]
+const NON_CONSUMABLE_IDS: PackedStringArray = ["remove_ads"]
+
+var _granted_tokens := {}
+
+
+func _ready() -> void:
+	GoogleBilling.connected.connect(_on_connected)
+	GoogleBilling.disconnected.connect(GoogleBilling.start_connection)
+	GoogleBilling.product_details_received.connect(_on_products)
+	GoogleBilling.purchase_updated.connect(_handle_purchases)
+	GoogleBilling.unconsumed_purchases_received.connect(_handle_purchases)
+	GoogleBilling.purchase_consumed.connect(_on_consumed)
+	GoogleBilling.purchase_failed.connect(_on_billing_error)
+	GoogleBilling.start_connection()
+
+
+# Quét đơn kẹt trước, sau đó mới lấy giá cho cửa hàng
+func _on_connected() -> void:
+	GoogleBilling.query_unconsumed_purchases()
+	GoogleBilling.query_product_details(CONSUMABLE_IDS + NON_CONSUMABLE_IDS)
+
+
+func _on_products(products: Array) -> void:
+	for p in products:
+		print(p["product_id"], " = ", p["price"])
+
+
+# Chỉ trao thưởng đơn đã trả tiền, chưa trao và chưa acknowledge
+func _handle_purchases(purchases: Array) -> void:
+	for p in purchases:
+		var token: String = p["purchase_token"]
+		if p["purchase_state"] != GoogleBilling.PURCHASE_STATE_PURCHASED or p["is_acknowledged"] or _granted_tokens.has(token):
+			continue
+		_granted_tokens[token] = true
+		_grant_reward(p["product_id"])
+		_finish_purchase(p["product_id"], token)
+
+
+# Item tiêu hao phải consume để mua lại được, item mua 1 lần chỉ acknowledge
+func _finish_purchase(product_id: String, token: String) -> void:
+	if product_id in NON_CONSUMABLE_IDS:
+		GoogleBilling.acknowledge_purchase(token)
+	else:
+		GoogleBilling.consume_purchase(token)
+
+
+func _grant_reward(product_id: String) -> void:
+	print("Trao thưởng cho ", product_id)
+
+
+func _on_consumed(token: String) -> void:
+	print("Đã consume ", token)
+
+
+func _on_billing_error(code: int, message: String) -> void:
+	push_warning("Billing lỗi %d: %s" % [code, message])</code></pre></div>
+
+        <div class="callout ok">
+          <div class="callout-title"><span class="ico">✓</span>Safe-Mock trên PC/Editor</div>
+          <p><code>start_connection()</code> phát <code>connected</code>, sau đó <code>is_ready()</code> trả về <code>true</code>. <code>query_product_details()</code> trả giá giả <code>"$0.99" / 990000 micros / USD</code> cho từng id. <code>purchase()</code> luôn thành công, đơn ở trạng thái PURCHASED và có token <code>mock_token_&lt;id&gt;_&lt;ms&gt;</code>. <code>consume_purchase()</code> phát <code>purchase_consumed</code>, <code>acknowledge_purchase()</code> phát <code>purchase_acknowledged</code>. <code>query_unconsumed_purchases()</code> trả mảng rỗng. Mọi signal đều phát qua <code>call_deferred</code>.</p>
+        </div>
+        <div class="callout danger">
+          <div class="callout-title"><span class="ico">!</span>Chống trao thưởng 2 lần</div>
+          <p>Cùng một đơn có thể về qua cả <code>purchase_updated</code> lẫn <code>unconsumed_purchases_received</code> (ví dụ app quét lại trước khi consume xong). Luôn khử trùng lặp bằng <code>purchase_token</code>. Trong game thật nên để server xác minh <code>original_json</code> + <code>signature</code> và đánh dấu token đã dùng.</p>
+        </div>
+      </section>
+
+      <!-- ---------------- Firebase ---------------- -->
+      <section class="sec" id="addon-firebase">
+        <h3>4 · Firebase <span class="badge b-warn">emit trực tiếp</span></h3>
+        <div class="addon-head">
+          <div><span>Autoload:</span> <code>Firebase</code></div>
+          <div><span>Java:</span> <code>com.godot.firebase.GodotFirebasePlugin</code></div>
+          <div><span>Module:</span> Analytics · Crashlytics · Messaging · Realtime DB · Remote Config</div>
+        </div>
+        <p><b>Mục đích:</b> gom 5 dịch vụ Firebase vào một addon. Firebase được <b>khởi tạo thủ công</b> bằng <code>Firebase.init(config)</code>, <b>không dùng</b> <code>google-services.json</code> hay Gradle plugin <code>google-services</code>. Game tự lấy các giá trị từ file json rồi truyền vào.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Key trong config</th><th>Lấy từ google-services.json</th><th>Bắt buộc</th></tr></thead>
+            <tbody>
+              <tr><td><code>api_key</code></td><td><code>client[0].api_key[0].current_key</code></td><td><span class="badge b-danger">Bắt buộc</span></td></tr>
+              <tr><td><code>app_id</code></td><td><code>client[0].client_info.mobilesdk_app_id</code></td><td><span class="badge b-danger">Bắt buộc</span></td></tr>
+              <tr><td><code>project_id</code></td><td><code>project_info.project_id</code></td><td>Nên có</td></tr>
+              <tr><td><code>sender_id</code></td><td><code>project_info.project_number</code></td><td>Cần cho FCM</td></tr>
+              <tr><td><code>database_url</code></td><td><code>project_info.firebase_url</code></td><td>Cần cho Realtime DB</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tabs" data-tabs>
+          <div class="tab-list" role="tablist">
+            <button class="tab-btn" role="tab" aria-selected="true">Init &amp; Analytics</button>
+            <button class="tab-btn" role="tab" aria-selected="false">Crashlytics</button>
+            <button class="tab-btn" role="tab" aria-selected="false">FCM &amp; Deeplink</button>
+            <button class="tab-btn" role="tab" aria-selected="false">Realtime DB &amp; Remote Config</button>
+          </div>
+          <div class="tab-panel" role="tabpanel">
+<div class="code" data-lang="gdscript" data-file="game/Splash.gd"><pre><code># Config là của từng game, đọc từ google-services.json của game đó
+const FIREBASE_CONFIG := {
+	"api_key": "AIza...",
+	"app_id": "1:1234567890:android:abcdef",
+	"project_id": "my-game",
+	"sender_id": "1234567890",
+	"database_url": "https://my-game-default-rtdb.firebaseio.com",
+}
+
+
+# Phải init trước mọi hàm khác, nếu không plugin Java chỉ log cảnh báo rồi bỏ qua
+func _ready() -> void:
+	if Firebase.init(FIREBASE_CONFIG):
+		Firebase.set_user_id("player_42")
+		Firebase.log_event("app_open", {"source": "splash"})
+		Firebase.set_current_screen("splash")</code></pre></div>
+          </div>
+          <div class="tab-panel" role="tabpanel" hidden>
+<div class="code" data-lang="gdscript" data-file="game/ErrorReporter.gd"><pre><code># Gắn ngữ cảnh trước để báo cáo crash dễ lọc
+func _ready() -> void:
+	Firebase.set_custom_key("build_channel", "beta")
+
+
+# Ghi lỗi non-fatal khi dữ liệu save bị hỏng, game vẫn chạy tiếp
+func report_corrupted_save(path: String) -> void:
+	Firebase.record_exception("Save hỏng tại " + path)</code></pre></div>
+          </div>
+          <div class="tab-panel" role="tabpanel" hidden>
+<div class="code" data-lang="gdscript" data-file="game/PushService.gd"><pre><code>func _ready() -> void:
+	Firebase.fcm_token_received.connect(_on_token)
+	Firebase.fcm_message_received.connect(_on_message)
+	Firebase.get_fcm_token()
+	Firebase.subscribe_to_topic("all")
+	_handle_deeplink()
+
+
+# Token đổi bất kỳ lúc nào nên luôn gửi lại lên server
+func _on_token(token: String) -> void:
+	print("FCM token: ", token)
+
+
+# Chỉ nhận được khi app đang mở, app đóng thì hệ thống tự hiện notification
+func _on_message(title: String, body: String) -> void:
+	print("Push: ", title, " - ", body)
+
+
+# Deeplink chỉ đọc được một lần và hết hạn sau 24h
+func _handle_deeplink() -> void:
+	var data := Firebase.consume_pending_deeplink()
+	if data.get("action", "") == "open_shop":
+		print("Mở shop từ push")</code></pre></div>
+          </div>
+          <div class="tab-panel" role="tabpanel" hidden>
+<div class="code" data-lang="gdscript" data-file="game/RemoteSettings.gd"><pre><code>func _ready() -> void:
+	Firebase.remote_config_fetched.connect(_on_config_fetched)
+	Firebase.realtime_data_received.connect(_on_realtime_data)
+	Firebase.fetch_remote_config()
+	Firebase.get_realtime_value("events/current")
+
+
+# Luôn có giá trị mặc định để chạy được khi offline hoặc trên PC
+func _on_config_fetched(success: bool) -> void:
+	var rate := Firebase.get_remote_config_string("drop_rate", "0.05")
+	print("fetch=", success, " drop_rate=", rate)
+
+
+# value là chuỗi JSON nếu node là object/array, chuỗi rỗng nếu node không tồn tại
+func _on_realtime_data(path: String, value: String) -> void:
+	var parsed = JSON.parse_string(value) if not value.is_empty() else null
+	print(path, " → ", parsed)</code></pre></div>
+          </div>
+        </div>
+
+        <div class="callout ok">
+          <div class="callout-title"><span class="ico">✓</span>Safe-Mock trên PC/Editor</div>
+          <p>Mọi hàm đều không làm gì. <code>init()</code> trả về <code>false</code>. <code>get_remote_config_string()</code> trả về <code>default_value</code>. <code>consume_pending_deeplink()</code> trả về <code>{}</code>. <b>Không có signal giả lập nào</b>, nên game đừng chờ <code>fcm_token_received</code> hay <code>remote_config_fetched</code> khi chạy trên PC.</p>
+        </div>
+        <div class="callout warn">
+          <div class="callout-title"><span class="ico">!</span>Nợ kỹ thuật: chưa có queue</div>
+          <p>Các module Firebase gọi <code>plugin.emitPluginSignal()</code> ngay trong callback của SDK. Hiện an toàn vì các callback đều do game chủ động gọi. Riêng <code>GodotFirebaseMessagingService.onNewToken</code> có thể chạy khi engine chưa sẵn sàng. Lúc đó <code>MessagingModule.getInstance()</code> trả về <code>null</code> và token bị bỏ qua (không văng app), nên game cần gọi <code>get_fcm_token()</code> mỗi lần mở app.</p>
+        </div>
+      </section>
+
+      <!-- ---------------- AdMob ---------------- -->
+      <section class="sec" id="addon-admob">
+        <h3>5 · AdMob <span class="badge b-warn">emit trực tiếp</span></h3>
+        <div class="addon-head">
+          <div><span>Autoload:</span> <code>AdMob</code></div>
+          <div><span>Java:</span> <code>com.godot.admob.AdmobPlugin</code> (chỉ có AAR)</div>
+          <div><span>SDK:</span> <code>play-services-ads:23.4.0</code></div>
+          <div><span>App ID:</span> Project Settings → <code>admob/app_id</code></div>
+        </div>
+        <p><b>Mục đích:</b> hiện banner (320x50, ở đáy hoặc đỉnh màn hình) và video có thưởng (Rewarded). Bản AAR hiện tại <b>chưa có Interstitial</b>.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>API</th><th>Mô tả</th></tr></thead>
+            <tbody>
+              <tr><td><code>init()</code></td><td>Khởi tạo Mobile Ads SDK. Gọi một lần lúc mở game.</td></tr>
+              <tr><td><code>show_banner(ad_unit_id, position = POS_BOTTOM)</code></td><td>Tải và hiện banner. Gọi lần hai chỉ hiện lại banner cũ. Kết quả trả về qua <code>banner_loaded</code> / <code>banner_failed(code, msg)</code>.</td></tr>
+              <tr><td><code>hide_banner()</code></td><td>Ẩn banner, vẫn giữ AdView.</td></tr>
+              <tr><td><code>load_rewarded(ad_unit_id)</code></td><td>Tải trước video. Kết quả trả về qua <code>rewarded_loaded</code> / <code>rewarded_failed(code, msg)</code>.</td></tr>
+              <tr><td><code>show_rewarded()</code> · <code>is_rewarded_ready()</code></td><td>Hiện video. Xem đủ thì nhận <code>reward_earned(amount)</code>. Sau mỗi lần hiện phải <code>load_rewarded</code> lại.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Code mẫu</h4>
+<div class="code" data-lang="gdscript" data-file="game/AdService.gd"><pre><code># ID test chính thức của Google, game thay bằng ID thật khi phát hành
+const BANNER_ID := "ca-app-pub-3940256099942544/6300978111"
+const REWARDED_ID := "ca-app-pub-3940256099942544/5224354917"
+
+
+func _ready() -> void:
+	AdMob.rewarded_loaded.connect(func(): print("Rewarded sẵn sàng"))
+	AdMob.rewarded_failed.connect(_on_rewarded_failed)
+	AdMob.reward_earned.connect(_on_reward_earned)
+	AdMob.init()
+	AdMob.show_banner(BANNER_ID, AdMob.POS_BOTTOM)
+	AdMob.load_rewarded(REWARDED_ID)
+
+
+# Trên PC không có quảng cáo nên nút xem video phải có đường thoát
+func _on_watch_video_pressed() -> void:
+	if AdMob.is_rewarded_ready():
+		AdMob.show_rewarded()
+	elif not AdMob.is_available():
+		_on_reward_earned(1)
+
+
+# Tải sẵn video tiếp theo ngay sau khi nhận thưởng
+func _on_reward_earned(amount: int) -> void:
+	print("Thưởng x", amount)
+	AdMob.load_rewarded(REWARDED_ID)
+
+
+func _on_rewarded_failed(code: int, message: String) -> void:
+	push_warning("Rewarded lỗi %d: %s" % [code, message])</code></pre></div>
+
+        <div class="callout ok">
+          <div class="callout-title"><span class="ico">✓</span>Safe-Mock trên PC/Editor</div>
+          <p>Mọi hàm đều không làm gì. <code>is_rewarded_ready()</code> trả về <code>false</code>. <b><code>reward_earned</code> không bao giờ phát</b>, nên game phải tự xử lý nhánh <code>not AdMob.is_available()</code> như code mẫu ở trên, nếu không sẽ kẹt khi test trên PC.</p>
+        </div>
+        <div class="callout info">
+          <div class="callout-title"><span class="ico">i</span>Cấu hình App ID cho từng game</div>
+          <p><code>plugin.cfg</code> dùng <code>export_plugin.gd</code>. Khi bật plugin, file này tạo setting <b>Project Settings → <code>admob/app_id</code></b> (mặc định là App ID test của Google) và chèn vào manifest lúc export. Khi export <b>release</b> mà vẫn để App ID test, Godot sẽ cảnh báo. Script này cũng chèn <code>tools:replace</code> để không xung đột manifest khi dùng chung với Firebase. File <code>admob_plugin.gd</code> cũ không còn được dùng.</p>
+        </div>
+      </section>
+
+      <!-- ---------------- Safe-Mock tổng hợp ---------------- -->
+      <section class="sec" id="safe-mock">
+        <h3>Tổng hợp cơ chế Safe-Mock</h3>
+        <p>Mọi wrapper đều theo một khuôn: <code>_ready()</code> kiểm tra <code>Engine.has_singleton(PLUGIN_NAME)</code>. Nếu không có singleton thì <code>_plugin</code> giữ giá trị <code>null</code> và <code>is_available()</code> trả về <code>false</code>. Từng hàm sẽ rẽ nhánh: gọi xuống native khi có plugin, trả dữ liệu giả an toàn khi không có.</p>
+<div class="code" data-lang="gdscript" data-file="Mẫu rẽ nhánh Safe-Mock"><pre><code>func sign_in(web_client_id: String = "") -> void:
+	if is_available():
+		_plugin.sign_in(web_client_id)
+	else:
+		# call_deferred để node gọi hàm kịp nhận signal trong cùng frame
+		sign_in_success.emit.call_deferred(_mock_user())</code></pre></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Addon</th><th>Mức giả lập</th><th>Signal giả trên PC</th><th>Game cần chú ý</th></tr></thead>
+            <tbody>
+              <tr><td><b>AndroidUtil</b></td><td><span class="badge b-ok">Đầy đủ</span></td><td><code>notification_permission_result(true)</code></td><td>Không bao giờ có <code>notification_opened</code></td></tr>
+              <tr><td><b>Google Sign-In</b></td><td><span class="badge b-ok">Đầy đủ</span></td><td><code>sign_in_success(mock_user)</code></td><td><code>id_token</code> rỗng, server phải chấp nhận chế độ dev</td></tr>
+              <tr><td><b>Google Billing</b></td><td><span class="badge b-ok">Đầy đủ</span></td><td>Toàn bộ luồng kết nối → giá → mua → consume</td><td>Đơn giả không qua được server verify</td></tr>
+              <tr><td><b>Firebase</b></td><td><span class="badge b-warn">No-op</span></td><td>Không có</td><td>Không chờ signal, luôn có giá trị mặc định</td></tr>
+              <tr><td><b>AdMob</b></td><td><span class="badge b-warn">No-op</span></td><td>Không có</td><td>Tự bỏ qua bước xem video khi <code>is_available()</code> là false</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ---------------- Lỗi thường gặp ---------------- -->
+      <section class="sec" id="loi-thuong-gap">
+        <h3>Bảng lỗi thường gặp &amp; cách fix</h3>
+
+        <div class="callout danger">
+          <div class="callout-title"><span class="ico">!</span>Ba lỗi nghiêm trọng nhất</div>
+          <ul>
+            <li><b>Văng app lúc cold start</b>: do emit signal trước khi engine sẵn sàng.</li>
+            <li><b>Sign-In báo <code>NO_CREDENTIAL</code> dù máy có tài khoản Google</b>: do thiếu hoặc sai SHA-1 trên Firebase / Google Cloud.</li>
+            <li><b>Kẹt đơn IAP</b>: người chơi trả tiền nhưng không nhận được hàng, sau 3 ngày Google tự hoàn tiền.</li>
+          </ul>
+        </div>
+
+        <div class="table-wrap">
+          <table class="err-table">
+            <thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách fix</th></tr></thead>
+            <tbody>
+              <tr class="sev-row-danger">
+                <td><b>App văng ngay khi mở bằng cách bấm notification</b><br><span class="muted">Logcat: <code>IllegalArgumentException</code> khi emitSignal</span></td>
+                <td><code>onMainResume</code> / <code>onMainActivityResult</code> chạy trước khi Godot đăng ký signal của plugin (cold start).</td>
+                <td>Lưu dữ liệu vào <code>ConcurrentLinkedQueue</code>. Chỉ emit sau <code>onGodotMainLoopStarted()</code> và luôn qua <code>runOnRenderThread</code>, bọc <code>try/catch</code>. GDScript rút queue trong <code>_ready()</code> sau một frame. Xem <a href="#sop-1">mẫu Facade</a>.</td>
+              </tr>
+              <tr class="sev-row-danger">
+                <td><b>Google Sign-In trả <code>NO_CREDENTIAL</code></b> dù máy đã đăng nhập Google, hoặc lỗi có message <code>[28444] Developer console is not set up correctly</code></td>
+                <td>SHA-1 của keystore đang ký APK <b>chưa được đăng ký</b> trên Firebase / Google Cloud, hoặc package name không khớp. Khi bật Play App Signing, SHA-1 của bản tải từ Play <b>khác</b> SHA-1 của upload key.</td>
+                <td>
+                  <ol>
+                    <li>Lấy SHA-1: <code>keytool -list -v -keystore &lt;file&gt;.keystore -alias &lt;alias&gt;</code>.</li>
+                    <li>Firebase Console → Project settings → app Android → <b>Add fingerprint</b>. Thêm đủ 3 SHA-1: debug, upload và <b>App signing key</b> (lấy trong Play Console → Setup → App integrity).</li>
+                    <li>Đợi 5–10 phút rồi thử lại. Không cần build lại.</li>
+                  </ol>
+                </td>
+              </tr>
+              <tr class="sev-row-danger">
+                <td><b>Đã trừ tiền nhưng không nhận vật phẩm</b>, vài ngày sau người chơi bị hoàn tiền</td>
+                <td>App crash, mất mạng hoặc bị tắt giữa lúc thanh toán và lúc consume / acknowledge. Đơn không được consume hoặc acknowledge trong <b>3 ngày</b> sẽ bị Google tự hoàn tiền.</td>
+                <td>Luôn gọi <code>query_unconsumed_purchases()</code> ngay khi nhận <code>connected</code>. Trao thưởng các đơn có <code>purchase_state == 1</code> và <code>is_acknowledged == false</code>, rồi gọi <code>consume_purchase()</code> (item tiêu hao) hoặc <code>acknowledge_purchase()</code> (item mua 1 lần). Khử trùng lặp bằng <code>purchase_token</code>.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b><code>purchase_failed</code> code 7 (ITEM_ALREADY_OWNED)</b></td>
+                <td>Item tiêu hao: đơn trước chưa được consume. Item không tiêu hao: người chơi đã sở hữu rồi, đây là hành vi đúng.</td>
+                <td>Item tiêu hao: gọi <code>query_unconsumed_purchases()</code>, trao thưởng và consume đơn cũ rồi cho mua lại. Item không tiêu hao: ẩn nút mua khi đã sở hữu.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b><code>purchase_failed</code> "PRODUCT_NOT_QUERIED"</b></td>
+                <td>Gọi <code>purchase()</code> trước <code>query_product_details()</code>. Billing 7 bắt buộc phải có <code>ProductDetails</code>.</td>
+                <td>Luôn query giá trước khi vào Shop. Chỉ cho bấm mua khi đã nhận <code>product_details_received</code>.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b>Lỗi "BILLING_NOT_READY"</b> hoặc <code>disconnected</code></td>
+                <td>Gọi hàm khi chưa kết nối, hoặc Play Store ngắt service.</td>
+                <td>Nối <code>disconnected</code> vào <code>start_connection</code>. Java tự bỏ qua lời gọi nếu đã kết nối.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b>Product trả về mảng rỗng</b> khi query giá</td>
+                <td>App chưa có trên track test của Play, sai package hoặc <code>versionCode</code>, sản phẩm chưa Active, hoặc tài khoản chưa nằm trong License testers.</td>
+                <td>Upload AAB lên track Internal testing, cài app qua link opt-in, kích hoạt sản phẩm, thêm email vào License testing.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b><code>sign_in_failed("MISSING_WEB_CLIENT_ID")</code></b> hoặc đăng nhập lỗi ngay khi mở bottom sheet</td>
+                <td>Truyền chuỗi rỗng, hoặc truyền nhầm Android client ID thay vì Web client ID.</td>
+                <td>Dùng OAuth client loại <b>Web</b> (<code>client_type: 3</code> trong <code>google-services.json</code>).</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b><code>Firebase.init()</code> trả về false</b></td>
+                <td>Thiếu <code>api_key</code> hoặc <code>app_id</code> trong config. Logcat tag <code>GodotFirebase</code> ghi "thieu api_key hoac app_id".</td>
+                <td>Kiểm tra lại cách map key theo <a href="#addon-firebase">bảng config</a>.</td>
+              </tr>
+              <tr class="sev-row-danger">
+                <td><b>App văng ngay khi mở</b> sau khi thêm AdMob</td>
+                <td>Manifest thiếu <code>com.google.android.gms.ads.APPLICATION_ID</code>.</td>
+                <td>Kiểm tra addon AdMob đã bật và export script có chèn meta-data APPLICATION_ID.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b>Manifest merger failed: <code>AD_SERVICES_CONFIG</code></b></td>
+                <td><code>play-services-ads</code> và <code>firebase-analytics</code> cùng khai property này với resource khác nhau.</td>
+                <td>Đã xử lý: <code>addons/admob/export_plugin.gd</code> chèn <code>tools:replace="android:resource"</code>. Nếu vẫn gặp lỗi, kiểm tra <code>plugin.cfg</code> của AdMob có trỏ tới <code>export_plugin.gd</code> không.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b>Wrapper luôn chạy Safe-Mock dù đang trên điện thoại</b></td>
+                <td><code>Engine.has_singleton</code> trả về false vì chưa bật plugin, export preset không bật Gradle build, hoặc tên singleton không khớp.</td>
+                <td>Bật plugin trong Project Settings → Plugins. Bật <code>gradle_build/use_gradle_build</code>. Đảm bảo <code>getPluginName()</code> = <code>PLUGIN_NAME</code> = hậu tố <code>org.godotengine.plugin.v2.&lt;Tên&gt;</code>.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b>Không hiện thông báo trên Android 13+</b></td>
+                <td>Chưa được cấp quyền <code>POST_NOTIFICATIONS</code>.</td>
+                <td>Gọi <code>request_notification_permission()</code> vào thời điểm hợp lý và xử lý <code>notification_permission_result</code>.</td>
+              </tr>
+              <tr class="sev-row-warn">
+                <td><b>Google Play từ chối bản build</b> vì quyền báo thức chính xác</td>
+                <td>Khai báo <code>SCHEDULE_EXACT_ALARM</code> / <code>USE_EXACT_ALARM</code>.</td>
+                <td>Không thêm các quyền này. AndroidUtil dùng <code>setAndAllowWhileIdle</code>, thông báo có thể lệch vài phút nhưng hợp lệ chính sách.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           PHẦN 3
+      ========================================================== -->
+      <div class="part" id="sop">
+        <div class="part-label">Phần 3</div>
+        <h2>Quy trình SOP 4 bước tạo Addon mới</h2>
+        <p class="lead">Mọi addon mới đều làm theo đúng 4 bước dưới đây. Ví dụ dùng tên giả định <code>my_feature</code>, singleton <code>GodotMyFeature</code>, Autoload <code>MyFeature</code>. Hãy thay bằng tên thật.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title"><span class="ico">i</span>Quy tắc đặt tên phải khớp ở 5 chỗ</div>
+        <div class="table-wrap" style="margin:8px 0 0">
+          <table>
+            <thead><tr><th>Vị trí</th><th>Giá trị ví dụ</th></tr></thead>
+            <tbody>
+              <tr><td><code>settings.gradle.kts</code> → <code>rootProject.name</code></td><td><code>GodotMyFeature</code> (quyết định tên file <code>.aar</code>)</td></tr>
+              <tr><td>Java → <code>getPluginName()</code></td><td><code>GodotMyFeature</code></td></tr>
+              <tr><td>Manifest → <code>org.godotengine.plugin.v2.&lt;Tên&gt;</code></td><td><code>org.godotengine.plugin.v2.GodotMyFeature</code></td></tr>
+              <tr><td><code>MyFeature.gd</code> → <code>PLUGIN_NAME</code></td><td><code>GodotMyFeature</code></td></tr>
+              <tr><td><code>export_plugin.gd</code> → <code>AAR_RELEASE</code></td><td><code>res://addons/my_feature/bin/GodotMyFeature-release.aar</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="steps">
+
+        <!-- ---------- Bước 1 ---------- -->
+        <div class="step" id="sop-1">
+          <div class="step-num">1</div>
+          <h3>Viết Java Native</h3>
+          <div class="step-sub">Tạo <code>custom_plugin/my_feature/</code>, kế thừa <code>GodotPlugin</code> và gọi SDK bên thứ 3.</div>
+
+          <h4>1.1 · Dựng khung Gradle (copy từ plugin có sẵn)</h4>
+<div class="code" data-lang="bash" data-file="Git Bash, tại thư mục custom_plugin/"><pre><code># Wrapper, gradlew và local.properties (sdk.dir) dùng chung cấu hình với android_util
+mkdir -p my_feature/gradle/wrapper my_feature/src/main/java/com/godot/myfeature
+cp android_util/gradle/wrapper/* my_feature/gradle/wrapper/
+cp android_util/gradlew android_util/gradlew.bat android_util/gradle.properties android_util/local.properties my_feature/
+sed 's/GodotAndroidUtil/GodotMyFeature/' android_util/settings.gradle.kts > my_feature/settings.gradle.kts</code></pre></div>
+
+<div class="code" data-lang="kotlin" data-file="custom_plugin/my_feature/build.gradle.kts"><pre><code>plugins {
+    id("com.android.library")
+}
+
+android {
+    namespace = "com.godot.myfeature"
+    compileSdk = 34
+
+    defaultConfig {
+        minSdk = 21
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Godot chỉ compileOnly vì engine đã có sẵn trong APK
+    compileOnly("org.godotengine:godot:4.3.0.stable")
+
+    // SDK bên thứ 3: phải khai lại đúng version này trong export_plugin.gd
+    implementation("com.example:some-sdk:1.2.3")
+}</code></pre></div>
+
+<div class="code" data-lang="xml" data-file="custom_plugin/my_feature/src/main/AndroidManifest.xml"><pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+    &lt;application&gt;
+        &lt;!-- Đăng ký Godot Plugin v2 để engine tự nạp --&gt;
+        &lt;meta-data
+            android:name="org.godotengine.plugin.v2.GodotMyFeature"
+            android:value="com.godot.myfeature.GodotMyFeaturePlugin" /&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</code></pre></div>
+
+          <h4>1.2 · Facade với queue chống Cold Start</h4>
+          <p>Facade chỉ nhận lệnh và chuyển xuống Module. Kết quả đi qua <code>pushEvent()</code>, không bao giờ <code>emitSignal</code> trực tiếp từ callback.</p>
+<div class="code" data-lang="java" data-file="custom_plugin/my_feature/src/main/java/com/godot/myfeature/GodotMyFeaturePlugin.java"><pre><code>package com.godot.myfeature;
+
+import android.app.Activity;
+import android.util.Log;
+import androidx.annotation.NonNull;
+import com.godot.myfeature.core.MyFeatureModule;
+import org.godotengine.godot.Dictionary;
+import org.godotengine.godot.Godot;
+import org.godotengine.godot.plugin.GodotPlugin;
+import org.godotengine.godot.plugin.SignalInfo;
+import org.godotengine.godot.plugin.UsedByGodot;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+public class GodotMyFeaturePlugin extends GodotPlugin {
+    private static final String TAG = "GodotMyFeature";
+    private static final String SIGNAL_EVENT_READY = "event_ready";
+
+    private final Activity activity;
+    private MyFeatureModule module;
+
+    // Callback SDK chạy ở UI thread, GDScript rút ở render thread
+    private final ConcurrentLinkedQueue&lt;Dictionary&gt; pendingEvents = new ConcurrentLinkedQueue&lt;&gt;();
+
+    // Cold start: chưa được emitSignal khi engine chưa đăng ký signal của plugin
+    private volatile boolean mainLoopStarted = false;
+
+    public GodotMyFeaturePlugin(Godot godot) {
+        super(godot);
+        this.activity = getActivity();
+    }
+
+    @NonNull
+    @Override
+    public String getPluginName() {
+        return "GodotMyFeature";
+    }
+
+    @NonNull
+    @Override
+    public Set&lt;SignalInfo&gt; getPluginSignals() {
+        Set&lt;SignalInfo&gt; signals = new HashSet&lt;&gt;();
+        signals.add(new SignalInfo(SIGNAL_EVENT_READY));
+        return signals;
+    }
+
+    @Override
+    public void onGodotMainLoopStarted() {
+        super.onGodotMainLoopStarted();
+        mainLoopStarted = true;
+        if (!pendingEvents.isEmpty()) emitEventReady();
+    }
+
+    // Lưu vào queue rồi chỉ rung chuông, dữ liệu luôn để GDScript tự rút
+    private void pushEvent(Dictionary event) {
+        pendingEvents.offer(event);
+        emitEventReady();
+    }
+
+    // Bỏ qua khi engine chưa sẵn sàng, dữ liệu vẫn nằm trong queue
+    private void emitEventReady() {
+        if (!mainLoopStarted) return;
+        runOnRenderThread(() -&gt; {
+            try {
+                emitSignal(SIGNAL_EVENT_READY);
+            } catch (IllegalArgumentException e) {
+                Log.w(TAG, "emitSignal thất bại: " + e.getMessage());
+            }
+        });
+    }
+
+    // Tạo module muộn vì activity có thể null lúc plugin khởi tạo
+    private MyFeatureModule module() {
+        if (module == null &amp;&amp; activity != null) module = new MyFeatureModule(activity, this::pushEvent);
+        return module;
+    }
+
+    @UsedByGodot
+    public void do_something(String arg) {
+        MyFeatureModule m = module();
+        if (m != null) m.doSomething(arg);
+    }
+
+    @UsedByGodot
+    public boolean has_pending_event() {
+        return !pendingEvents.isEmpty();
+    }
+
+    @UsedByGodot
+    public Dictionary pop_pending_event() {
+        Dictionary data = pendingEvents.poll();
+        return data != null ? data : new Dictionary();
+    }
+}</code></pre></div>
+          <div class="callout warn">
+            <div class="callout-title"><span class="ico">!</span>Kiểu dữ liệu đi qua cầu JNI</div>
+            <p>Chỉ dùng kiểu mà Godot hiểu: <code>String, int, long, boolean, float/double, Dictionary, String[], Object[]</code>. <b><code>List&lt;T&gt;</code> không được chuyển đổi</b>, phải đổi sang <code>Object[]</code> (xem <code>BillingMapper.purchases()</code>). Chuỗi <code>null</code> nên đổi thành <code>""</code> trước khi gửi lên.</p>
+          </div>
+        </div>
+
+        <!-- ---------- Bước 2 ---------- -->
+        <div class="step" id="sop-2">
+          <div class="step-num">2</div>
+          <h3>Build AAR</h3>
+          <div class="step-sub">Chạy Gradle bản release, rồi copy <code>.aar</code> vào <code>addons/my_feature/bin/</code>.</div>
+          <ul>
+            <li>Cần <b>JDK 17</b> và Android SDK. File <code>local.properties</code> phải có <code>sdk.dir=…</code>. File này đã nằm trong <code>.gitignore</code>, không commit.</li>
+            <li>Lần build đầu sẽ tải Gradle 8.9 và các dependency, mất vài phút.</li>
+          </ul>
+<div class="code" data-lang="bash" data-file="Git Bash"><pre><code>cd custom_plugin/my_feature
+./gradlew assembleRelease            # Windows CMD: gradlew.bat assembleRelease
+
+# Kết quả: build/outputs/aar/GodotMyFeature-release.aar
+mkdir -p ../../addons/my_feature/bin
+cp build/outputs/aar/GodotMyFeature-release.aar ../../addons/my_feature/bin/</code></pre></div>
+          <div class="callout info">
+            <div class="callout-title"><span class="ico">i</span>AAR không chứa SDK bên thứ 3</div>
+            <p>Thư viện Android build ra AAR chỉ chứa code của plugin. Các dependency khai bằng <code>implementation(...)</code> <b>không</b> được nhúng vào. Gradle của Godot sẽ tải chúng khi export, dựa vào <code>_get_android_dependencies()</code> ở Bước 4. Nếu quên khai ở đó, app sẽ văng với <code>NoClassDefFoundError</code>.</p>
+          </div>
+        </div>
+
+        <!-- ---------- Bước 3 ---------- -->
+        <div class="step" id="sop-3">
+          <div class="step-num">3</div>
+          <h3>Bọc GDScript Wrapper có Safe-Mock</h3>
+          <div class="step-sub">Tạo <code>addons/my_feature/MyFeature.gd</code>: rút queue, tách signal, giả lập an toàn trên PC.</div>
+<div class="code" data-lang="gdscript" data-file="addons/my_feature/MyFeature.gd"><pre><code># Mô tả ngắn gọn addon (Hạ tầng dùng chung)
+extends Node
+
+const PLUGIN_NAME := "GodotMyFeature"
+
+signal something_done(result: Dictionary)
+signal something_failed(code: int, message: String)
+
+var _plugin: Object = null
+
+
+# Kết nối chuông báo từ Java, payload thật luôn rút từ queue
+func _ready() -> void:
+	if not Engine.has_singleton(PLUGIN_NAME):
+		return
+	_plugin = Engine.get_singleton(PLUGIN_NAME)
+	if _plugin.has_signal("event_ready"):
+		_plugin.event_ready.connect(_drain_pending_events)
+	# Đợi 1 frame để node khác kịp connect signal rồi mới rút sự kiện tồn đọng
+	get_tree().process_frame.connect(_drain_pending_events, CONNECT_ONE_SHOT)
+
+
+# Rút hết queue để không mất sự kiện lúc cold start
+func _drain_pending_events() -> void:
+	if not is_available():
+		return
+	while _plugin.has_pending_event():
+		var event: Dictionary = _plugin.pop_pending_event()
+		if event.is_empty():
+			break
+		_dispatch_event(event)
+
+
+# Tách sự kiện chung thành signal có nghĩa cho game
+func _dispatch_event(event: Dictionary) -> void:
+	if str(event.get("type", "")).ends_with("_failed"):
+		something_failed.emit(int(event.get("code", -1)), str(event.get("message", "")))
+	else:
+		something_done.emit(event)
+
+
+# Kiểm tra xem plugin native có đang hoạt động hay không
+func is_available() -> bool:
+	return _plugin != null
+
+
+# PC/Editor không có native nên trả kết quả giả qua call_deferred
+func do_something(arg: String) -> void:
+	if is_available():
+		_plugin.do_something(arg)
+	else:
+		something_done.emit.call_deferred({"type": "done", "mock": true, "arg": arg})</code></pre></div>
+          <ul class="checklist">
+            <li>Mọi hàm public đều có nhánh <code>is_available()</code>. Nhánh mock không được gọi vào <code>_plugin</code>.</li>
+            <li>Signal mock phát qua <code>call_deferred</code>, không phát đồng bộ ngay trong lúc game đang gọi hàm.</li>
+            <li>Hàm có giá trị trả về phải trả giá trị mặc định an toàn (<code>{}</code>, <code>""</code>, <code>false</code>, hoặc giá trị hợp lý).</li>
+            <li>Không đặt text, ID sản phẩm hay logic thưởng của game trong wrapper.</li>
+          </ul>
+        </div>
+
+        <!-- ---------- Bước 4 ---------- -->
+        <div class="step" id="sop-4">
+          <div class="step-num">4</div>
+          <h3>Cấu hình Export &amp; bàn giao</h3>
+          <div class="step-sub">Tạo <code>plugin.cfg</code> và <code>export_plugin.gd</code>, bật plugin, kiểm tra export preset, rồi bàn giao core sang repo game.</div>
+<div class="code" data-lang="ini" data-file="addons/my_feature/plugin.cfg"><pre><code>[plugin]
+
+name="GodotMyFeature"
+description="Mo ta ngan gon addon."
+author="NextGZ"
+version="0.1.0"
+script="export_plugin.gd"</code></pre></div>
+<div class="code" data-lang="gdscript" data-file="addons/my_feature/export_plugin.gd"><pre><code>@tool
+extends EditorPlugin
+
+const PLUGIN_NAME := "GodotMyFeature"
+const AAR_RELEASE := "res://addons/my_feature/bin/GodotMyFeature-release.aar"
+const AUTOLOAD_NAME := "MyFeature"
+const AUTOLOAD_PATH := "res://addons/my_feature/MyFeature.gd"
+
+# Phải trùng version với implementation(...) trong build.gradle.kts
+const ANDROID_DEPENDENCIES := [
+	"com.example:some-sdk:1.2.3",
+]
+
+var _export_plugin: AndroidExportPlugin
+
+func _enter_tree() -> void:
+	_export_plugin = AndroidExportPlugin.new()
+	add_export_plugin(_export_plugin)
+	add_autoload_singleton(AUTOLOAD_NAME, AUTOLOAD_PATH)
+
+func _exit_tree() -> void:
+	remove_autoload_singleton(AUTOLOAD_NAME)
+	if _export_plugin != null:
+		remove_export_plugin(_export_plugin)
+		_export_plugin = null
+
+class AndroidExportPlugin extends EditorExportPlugin:
+	func _get_name() -> String:
+		return PLUGIN_NAME
+
+	func _supports_platform(platform: EditorExportPlatform) -> bool:
+		return platform is EditorExportPlatformAndroid
+
+	func _get_android_libraries(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
+		return PackedStringArray([AAR_RELEASE])
+
+	func _get_android_dependencies(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
+		return PackedStringArray(ANDROID_DEPENDENCIES)
+
+	func _get_android_dependencies_maven_repos(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
+		return PackedStringArray(["https://maven.google.com"])
+
+	# Manifest của AAR đã có meta-data này và Gradle tự gộp; khai lại để nhìn file export là thấy đủ cấu hình
+	func _get_android_manifest_application_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:
+		return """
+		&lt;meta-data
+			android:name="org.godotengine.plugin.v2.GodotMyFeature"
+			android:value="com.godot.myfeature.GodotMyFeaturePlugin" /&gt;
+		"""</code></pre></div>
+
+          <h4>Kích hoạt &amp; kiểm tra</h4>
+          <ol>
+            <li>Godot Editor → <b>Project Settings → Plugins</b> → bật <code>GodotMyFeature</code>. Godot sẽ tự thêm Autoload và sinh file <code>.uid</code>, không sửa tay <code>project.godot</code>.</li>
+            <li>Export preset Android: <code>gradle_build/use_gradle_build=true</code> (đã bật sẵn trong <code>export_presets.cfg</code>). Lần đầu dùng: <b>Project → Install Android Build Template</b>.</li>
+            <li>Chạy game trên PC để xác nhận Safe-Mock không lỗi, rồi export lên máy thật và xem logcat theo tag của plugin.</li>
+          </ol>
+          <h4>Bàn giao sang repo Game</h4>
+          <ul class="checklist">
+            <li>Chỉ giữ core hạ tầng. <b>Không</b> tạo scene hoặc UI test trong repo addon.</li>
+            <li>Commit <code>custom_plugin/my_feature/</code> (không commit <code>build/</code>, <code>.gradle/</code>, <code>local.properties</code>) cùng toàn bộ <code>addons/my_feature/</code>, kể cả file <code>.aar</code>.</li>
+            <li>Repo game chỉ cần copy thư mục <code>addons/my_feature/</code> rồi bật plugin.</li>
+          </ul>
+        </div>
+      </div>
+
+      <section class="sec" id="sop-checklist">
+        <h3>Checklist trước khi merge addon mới</h3>
+        <div class="card">
+          <ul class="checklist">
+            <li>Tên singleton khớp ở cả 5 vị trí (Gradle, Java, Manifest, wrapper, export).</li>
+            <li>Không có <code>emitSignal</code> nào gọi trực tiếp từ callback OS hoặc SDK. Tất cả đi qua queue.</li>
+            <li>Dependency trong <code>export_plugin.gd</code> trùng version với <code>build.gradle.kts</code>.</li>
+            <li>Không thêm quyền nguy hiểm hoặc bị hạn chế (<code>SCHEDULE_EXACT_ALARM</code>, …).</li>
+            <li>Wrapper chạy trên PC không lỗi, mọi hàm đều có Safe-Mock.</li>
+            <li>Mỗi hàm 5–15 dòng, comment một dấu <code>#</code> tiếng Việt giải thích lý do, không có magic number.</li>
+            <li>Không có tên game, text hiển thị hay logic thưởng trong addon.</li>
+            <li>File <code>.aar</code> trong <code>addons/&lt;tên&gt;/bin/</code> được build lại từ đúng commit Java mới nhất.</li>
+          </ul>
+        </div>
+      </section>
+
+      <footer>
+        NextGZ-Godot-Addons · Tài liệu kỹ thuật · Nguồn: README.md, CLAUDE.md và mã nguồn trong <code>custom_plugin/</code>, <code>addons/</code>.
+      </footer>
+    </div>
+  </main>
+</div>
+
+<button class="icon-btn to-top" id="toTop" aria-label="Lên đầu trang">↑ Đầu trang</button>
+
+<script>
+(function () {
+  'use strict';
+
+  // ================= SYNTAX HIGHLIGHT =================
+  var KW = {
+    gdscript: 'func var const signal extends class_name class if elif else for while in return break continue match pass and or not is as await static enum self true false null void preload export onready tool @tool',
+    java: 'package import public private protected static final class interface extends implements new return if else for while try catch throw throws void this super null true false volatile synchronized instanceof',
+    kotlin: 'plugins android dependencies val var fun id true false',
+    bash: 'cd mkdir cp sed ls echo export',
+    ini: '',
+    xml: ''
+  };
+  var TYPES = 'String int long boolean float double bool Dictionary Array PackedStringArray Object Node Activity Set HashSet Godot SignalInfo Intent Viewport JavaVersion EditorPlugin EditorExportPlugin EditorExportPlatform EditorExportPlatformAndroid ConcurrentLinkedQueue MyFeatureModule GodotPlugin IllegalArgumentException Log';
+
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function wrap(cls, s) { return '<span class="tk-' + cls + '">' + esc(s) + '</span>'; }
+
+  function patternFor(lang) {
+    if (lang === 'xml') return /(<!--[\s\S]*?-->)|("(?:[^"\\]|\\.)*")|(<\/?[\w:.-]+|\/?>|\?>|<\?[\w]+)|([\w:.-]+(?==))/g;
+    var cmt = (lang === 'gdscript' || lang === 'bash' || lang === 'ini') ? '#[^\\n]*' : '\\/\\/[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/';
+    if (lang === 'ini') cmt = '[;#][^\\n]*|^\\[[^\\]\\n]+\\]';
+    return new RegExp('(' + cmt + ')|("""[\\s\\S]*?"""|"(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|(\\b\\d[\\d_.]*[LfF]?\\b)|(@[A-Za-z_]\\w*)|([A-Za-z_]\\w*)(?=\\s*\\()|([A-Za-z_]\\w*)', 'gm');
+  }
+
+  function highlight(code, lang) {
+    var kw = new Set((KW[lang] || '').split(' '));
+    var types = new Set(TYPES.split(' '));
+    var re = patternFor(lang), out = '', last = 0, m;
+    while ((m = re.exec(code)) !== null) {
+      out += esc(code.slice(last, m.index));
+      last = re.lastIndex;
+      if (lang === 'xml') {
+        out += m[1] ? wrap('cmt', m[0]) : m[2] ? wrap('str', m[0]) : m[3] ? wrap('tag', m[0]) : wrap('attr', m[0]);
+        continue;
+      }
+      if (m[1]) out += wrap('cmt', m[0]);
+      else if (m[2]) out += wrap('str', m[0]);
+      else if (m[3]) out += wrap('num', m[0]);
+      else if (m[4]) out += wrap(lang === 'gdscript' ? 'kw' : 'ann', m[0]);
+      else if (m[5]) out += kw.has(m[0]) ? wrap('kw', m[0]) : wrap('fn', m[0]);
+      else if (kw.has(m[0])) out += wrap('kw', m[0]);
+      else if (types.has(m[0]) || /^[A-Z][A-Z0-9_]{2,}$/.test(m[0])) out += wrap('type', m[0]);
+      else out += esc(m[0]);
+    }
+    return out + esc(code.slice(last));
+  }
+
+  var LANG_LABEL = { gdscript: 'GDScript', java: 'Java', kotlin: 'Kotlin DSL', xml: 'XML', bash: 'Shell', ini: 'CFG' };
+
+  document.querySelectorAll('.code').forEach(function (block) {
+    var lang = block.getAttribute('data-lang');
+    var codeEl = block.querySelector('code');
+    var raw = codeEl.textContent;
+    codeEl.innerHTML = highlight(raw, lang);
+
+    var head = document.createElement('div');
+    head.className = 'code-head';
+    var file = document.createElement('span');
+    file.className = 'file';
+    file.textContent = block.getAttribute('data-file') || '';
+    var label = document.createElement('span');
+    label.className = 'lang';
+    label.textContent = LANG_LABEL[lang] || lang;
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.type = 'button';
+    btn.textContent = 'Sao chép';
+    btn.addEventListener('click', function () { copyText(raw, btn); });
+    head.appendChild(file); head.appendChild(label); head.appendChild(btn);
+    block.insertBefore(head, block.firstChild);
+  });
+
+  function copyText(text, btn) {
+    var done = function () { btn.textContent = 'Đã chép ✓'; setTimeout(function () { btn.textContent = 'Sao chép'; }, 1400); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+    } else { fallbackCopy(text); done(); }
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ================= TABS =================
+  document.querySelectorAll('[data-tabs]').forEach(function (tabs) {
+    var btns = tabs.querySelectorAll('.tab-btn');
+    var panels = tabs.querySelectorAll('.tab-panel');
+    btns.forEach(function (b, i) {
+      b.addEventListener('click', function () {
+        btns.forEach(function (x, j) { x.setAttribute('aria-selected', String(i === j)); });
+        panels.forEach(function (p, j) { p.hidden = i !== j; });
+      });
+    });
+  });
+
+  // ================= THEME =================
+  var root = document.documentElement;
+  var themeLabel = document.getElementById('themeLabel');
+  function currentTheme() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function renderThemeLabel() { themeLabel.textContent = currentTheme() === 'dark' ? 'Tối' : 'Sáng'; }
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('nz-doc-theme', next); } catch (e) {}
+    renderThemeLabel();
+  });
+  renderThemeLabel();
+
+  // ================= MOBILE NAV =================
+  var body = document.body;
+  var menuBtn = document.getElementById('menuBtn');
+  function setNav(open) {
+    body.classList.toggle('nav-open', open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+  }
+  menuBtn.addEventListener('click', function () { setNav(!body.classList.contains('nav-open')); });
+  document.getElementById('backdrop').addEventListener('click', function () { setNav(false); });
+  document.querySelectorAll('.nav-link').forEach(function (a) { a.addEventListener('click', function () { setNav(false); }); });
+
+  // ================= SIDEBAR FILTER =================
+  document.getElementById('sideSearch').addEventListener('input', function (e) {
+    var q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('.nav-group').forEach(function (g) {
+      var any = false;
+      g.querySelectorAll('.nav-link').forEach(function (a) {
+        var hit = !q || a.textContent.toLowerCase().indexOf(q) !== -1;
+        a.classList.toggle('hidden-by-search', !hit);
+        any = any || hit;
+      });
+      g.classList.toggle('hidden-by-search', !any);
+    });
+  });
+
+  // ================= SCROLL SPY =================
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav-link'));
+  var targets = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function spy() {
+    var pos = window.scrollY + 110, current = targets[0];
+    targets.forEach(function (t) { if (t.getBoundingClientRect().top + window.scrollY <= pos) current = t; });
+    links.forEach(function (a) { a.classList.toggle('active', current && a.getAttribute('href') === '#' + current.id); });
+    document.getElementById('toTop').classList.toggle('show', window.scrollY > 600);
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  spy();
+
+  document.getElementById('toTop').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+})();
+</script>
+</body>
+</html>
